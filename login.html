@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Login Page</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+            --background-color: #ecf0f1;
+            --text-color: #2c3e50;
+            --input-background: #fff;
+            --input-border: #bdc3c7;
+            --input-focus-border: #3498db;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .login-container {
+            background-color: var(--input-background);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--input-border);
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: var(--input-background);
+            color: var(--text-color);
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--input-focus-border);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+        }
+        button {
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .error {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .success {
+            color: var(--success-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .password-toggle {
+            position: relative;
+        }
+        .password-toggle input {
+            padding-right: 12px;
+        }
+        .password-toggle button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 0.875rem;
+            padding: 0.25rem;
+        }
+        .password-strength {
+            height: 5px;
+            margin-top: 0.5rem;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .strength-weak { width: 33%; background-color: var(--error-color); }
+        .strength-medium { width: 66%; background-color: #f39c12; }
+        .strength-strong { width: 100%; background-color: var(--success-color); }
+        .capslock-warning {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #f1c40f;
+            color: #000;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            display: none;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginContainer">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required autocomplete="username">
+                <div id="emailError" class="error" aria-live="polite"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <div class="password-toggle">
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                    <button type="button" id="togglePassword" aria-label="Toggle password visibility">Show</button>
+                    <div class="capslock-warning" id="capslockWarning">Caps Lock is on</div>
+                </div>
+                <div id="passwordError" class="error" aria-live="polite"></div>
+                <div class="password-strength" id="passwordStrength"></div>
+            </div>
+            
+            <div id="formMessage" class="success" aria-live="polite"></div>
+            
+            <button type="submit" id="submitButton"><a href="amazon.html">Log In</a></button>
+        </form>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const loginContainer = document.getElementById('loginContainer');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        const formMessage = document.getElementById('formMessage');
+        const submitButton = document.getElementById('submitButton');
+        const togglePasswordButton = document.getElementById('togglePassword');
+        const passwordStrength = document.getElementById('passwordStrength');
+        const capslockWarning = document.getElementById('capslockWarning');
+
+        function validateEmail(email) {
+            const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        function validatePassword(password) {
+            const minLength = 8;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumbers = /\d/.test(password);
+            const hasNonalphas = /\W/.test(password);
+            return password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasNonalphas;
+        }
+
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (password.length >= 12) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/\W/.test(password)) strength++;
+            
+            passwordStrength.className = 'password-strength';
+            if (strength < 3) {
+                passwordStrength.classList.add('strength-weak');
+            } else if (strength < 5) {
+                passwordStrength.classList.add('strength-medium');
+            } else {
+                passwordStrength.classList.add('strength-strong');
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+
+            if (!validateEmail(emailInput.value)) {
+                emailError.textContent = 'Please enter a valid email address.';
+                isValid = false;
+            } else {
+                emailError.textContent = '';
+            }
+
+            if (!validatePassword(passwordInput.value)) {
+                passwordError.textContent = 'Password must be at least 8 characters long and contain uppercase, lowercase, numeric, and special characters.';
+                isValid = false;
+            } else {
+                passwordError.textContent = '';
+            }
+
+            submitButton.disabled = !isValid;
+            return isValid;
+        }
+
+        emailInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', () => {
+            validateForm();
+            checkPasswordStrength(passwordInput.value);
+        });
+
+        togglePasswordButton.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.textContent = type === 'password' ? 'Show' : 'Hide';
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.getModifierState('CapsLock')) {
+                capslockWarning.style.display = 'block';
+            } else {
+                capslockWarning.style.display = 'none';
+            }
+        });
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateForm()) {
+                // Simulating an API call
+                submitButton.disabled = true;
+                submitButton.textContent = 'Logging in...';
+                
+                setTimeout(() => {
+                    // Simulating a successful login
+                    formMessage.textContent = 'Login successful!';
+                    formMessage.className = 'success';
+                    submitButton.textContent = 'Log In';
+                    submitButton.disabled = false;
+                    
+                    // Here you would typically make an API call to your authentication endpoint
+                    console.log('Login attempt:', { email: emailInput.value, password: passwordInput.value });
+
+                    // Clear form fields after successful login
+                    emailInput.value = '';
+                    passwordInput.value = '';
+                    passwordStrength.className = 'password-strength';
+                }, 1500);
+            } else {
+                loginContainer.classList.add('shake');
+                setTimeout(() => loginContainer.classList.remove('shake'), 500);
+            }
+        });
+
+        // Prevent form resubmission on page refresh
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+    </script>
+</body>
+</html>
